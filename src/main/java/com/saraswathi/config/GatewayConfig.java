@@ -10,6 +10,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 public class GatewayConfig {
 
+
     @Bean
     public RouteLocator customRoutes(RouteLocatorBuilder builder) {
         return builder.routes()

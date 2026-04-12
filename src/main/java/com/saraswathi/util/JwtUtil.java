@@ -24,6 +24,7 @@ public class JwtUtil {
                 .getBody();
 
         return claims.getSubject();
+
     }
     public String extractRole(String token) {
         Claims claims = Jwts.parserBuilder()

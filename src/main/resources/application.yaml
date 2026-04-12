@@ -19,3 +19,4 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/orders/**
+
