@@ -21,7 +21,6 @@ public class JwtFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-
         String path = exchange.getRequest().getURI().getPath();
 
         if (path.contains("/auth/login")) {
@@ -45,10 +44,10 @@ public class JwtFilter implements GlobalFilter {
 
 
             ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(builder -> builder.headers(headers -> {
-                        headers.set("X-User", username);
-                        headers.set("X-Role", role);   // ✅ IMPORTANT FIX
-                    }))
+                    .request(exchange.getRequest().mutate()
+                            .header("X-User", username)
+                            .header("X-Role", role)
+                            .build())
                     .build();
 
             return chain.filter(mutatedExchange);
