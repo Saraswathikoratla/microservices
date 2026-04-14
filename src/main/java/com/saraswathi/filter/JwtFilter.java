@@ -21,6 +21,7 @@ public class JwtFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
+
         String path = exchange.getRequest().getURI().getPath();
 
         if (path.contains("/auth/login")) {

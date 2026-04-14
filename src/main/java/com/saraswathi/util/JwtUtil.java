@@ -33,6 +33,7 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
 
+
         return claims.get("role", String.class);   // ✅ CORRECT
     }
 }
