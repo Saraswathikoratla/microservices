@@ -1,0 +1,106 @@
+
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: docker-demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  eureka-server:
+    build: ../EurekaServerApplication
+    container_name: EurekaServer-docker
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - app-network
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin-docker
+    restart: always
+    ports:
+      - "9411:9411"
+    networks:
+      - app-network
+
+  user-service:
+    build: .
+    container_name: user-service-docker
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - eureka-server
+      - zipkin
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/docker-demo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    networks:
+      - app-network
+
+
+  product-service:
+    build: ../product-service
+    container_name: product-service-docker
+    restart: always
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgres
+      - eureka-server
+      - zipkin
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/docker-demo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - app-network
+
+  order-service:
+    build: ../order-service
+    container_name: order-service-docker
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka-server
+      - zipkin
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    networks:
+      - app-network
+
+  api-gateway:
+    build: ../api-gateway
+    container_name: api-gateway-docker
+    ports:
+      - "9090:9090"
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
